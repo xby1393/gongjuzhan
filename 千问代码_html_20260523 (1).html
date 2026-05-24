@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>角色权限工具站 - 终极版</title>
+    <!-- PWA Manifest (注意：实际部署时需将 manifest 提取为独立 json 文件) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoi5bel5Lia5p2D5Zu65bel5YW3Iiwic2hvcnRfbmFtZSI6IuW3peSImuaKpSIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzRhNmZhNSIsInRoZW1lX2NvbG9yIjoiIzRhNmZhNSIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3d3dy5nb29nbGUuY29tL3MyL2Zhdmljb25zP2RvbWFpbj1sb2NhbGhvc3Qmc3o9MTkyIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
+    <meta name="theme-color" content="#4a6fa5">
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+    <style>
+        /* ================= CSS Variables (Theme System) ================= */
+        :root {
+            --bg-body: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-card: #ffffff; --bg-card-alt: #f8f9fa; --bg-input: #ffffff;
+            --bg-modal-overlay: rgba(0,0,0,0.5); --bg-nav: #4a6fa5;
+            --bg-tag: #e8f0fe; --bg-tag-chip: #f8f9fa; --bg-tag-chip-active: #4a6fa5;
+            --bg-import-options: #fff8e1; --text-primary: #333333;
+            --text-secondary: #555555; --text-muted: #888888;
+            --text-nav: rgba(255,255,255,0.9); --text-nav-info: rgba(255,255,255,0.8);
+            --text-tag: #4a6fa5; --text-tag-chip: #555555; --text-tag-chip-active: #ffffff;
+            --border-color: #ced4da; --border-light: #e9ecef; --border-tag-chip: #dee2e6;
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.08); --shadow-toast: 0 4px 12px rgba(0,0,0,0.15);
+            --color-accent: #4a6fa5; --color-success: #27ae60; --color-danger: #e74c3c; --color-warning: #f39c12;
+            --bookmark-delete-bg: rgba(231,76,60,0.1); --add-card-border: #ced4da;
+            --add-card-hover-bg: rgba(74,111,165,0.05); --table-header-bg: #f8f9fa;
+            --table-hover-bg: #fafafa; --table-border: #eeeeee; --profile-section-bg: #f8f9fa;
+            --feishu-tip-bg: #e8f5e9; --feishu-tip-text: #2e7d32; --feishu-tip-hover: #c8e6c9;
+            --btn-cancel-bg: #e9ecef; --btn-cancel-text: #555555;
+            --role-admin-bg: #fff3cd; --role-admin-text: #856404;
+            --role-user-bg: #d1ecf1; --role-user-text: #0c5460;
+            --drag-over-border: #4a6fa5; --drag-ghost-opacity: 0.5;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-card: #1e293b; --bg-card-alt: #263348; --bg-input: #263348;
+            --bg-modal-overlay: rgba(0,0,0,0.7); --bg-nav: #0f172a;
+            --bg-tag: #1e3a5f; --bg-tag-chip: #263348; --bg-tag-chip-active: #4a6fa5;
+            --bg-import-options: #3d2e00; --text-primary: #e2e8f0;
+            --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+            --text-nav: rgba(255,255,255,0.95); --text-nav-info: rgba(255,255,255,0.7);
+            --text-tag: #7dd3fc; --text-tag-chip: #cbd5e1; --text-tag-chip-active: #ffffff;
+            --border-color: #334155; --border-light: #2d3d53; --border-tag-chip: #334155;
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.3); --shadow-toast: 0 4px 12px rgba(0,0,0,0.4);
+            --color-accent: #7dd3fc; --color-success: #4ade80; --color-danger: #f87171; --color-warning: #fbbf24;
+            --bookmark-delete-bg: rgba(248,113,113,0.15); --add-card-border: #334155;
+            --add-card-hover-bg: rgba(125,211,252,0.08); --table-header-bg: #263348;
+            --table-hover-bg: #1e293b; --table-border: #2d3d53; --profile-section-bg: #263348;
+            --feishu-tip-bg: #064e3b; --feishu-tip-text: #6ee7b7; --feishu-tip-hover: #065f46;
+            --btn-cancel-bg: #334155; --btn-cancel-text: #cbd5e1;
+            --role-admin-bg: #78350f; --role-admin-text: #fde68a;
+            --role-user-bg: #164e63; --role-user-text: #a5f3fc;
+            --drag-over-border: #7dd3fc; --drag-ghost-opacity: 0.4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-body); min-height: 100vh; color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; box-shadow: var(--shadow-toast); min-width: 200px; pointer-events: auto; }
+        .toast.success { background: var(--color-success); } .toast.error { background: var(--color-danger); } .toast.info { background: var(--color-accent); } .toast.warning { background: var(--color-warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+        /* Navbar */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--bg-nav); padding: 0 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; display: none; align-items: center; justify-content: space-between; transition: background 0.3s ease; }
+        .nav-brand { color: white; font-weight: bold; font-size: 18px; }
+        .nav-menu { display: flex; list-style: none; gap: 8px; align-items: center; }
+        .nav-menu a, .nav-menu button.nav-btn { color: var(--text-nav); text-decoration: none; font-size: 15px; padding: 8px 16px; border-radius: 6px; transition: all 0.2s; cursor: pointer; background: none; border: none; font-family: inherit; }
+        .nav-menu a:hover, .nav-menu a.active, .nav-menu button.nav-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+        .nav-menu a.logout-btn { background: rgba(231,76,60,0.9); margin-left: 12px; }
+        .nav-menu a.logout-btn:hover { background: #c0392b; }
+        .nav-user-info { color: var(--text-nav-info); font-size: 13px; margin-right: 12px; }
+        .theme-toggle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-left: 8px; flex-shrink: 0; }
+        .theme-toggle:hover { transform: rotate(15deg); }
+
+        /* Auth */
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .auth-form { width: 380px; max-width: 90%; background: var(--bg-card); padding: 32px; border-radius: 16px; box-shadow: var(--shadow-card); transition: background 0.3s ease, box-shadow 0.3s ease; }
+        .auth-form h2 { text-align: center; margin-bottom: 28px; color: var(--text-primary); font-size: 24px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; color: var(--text-secondary); font-weight: 500; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 15px; transition: all 0.2s; outline: none; background: var(--bg-input); color: var(--text-primary); }
+        .form-group input:focus, .form-group select:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(74,111,165,0.12); }
+        .form-group input.invalid { border-color: var(--color-danger); }
+        .error-message { color: var(--color-danger); font-size: 12px; margin-top: 4px; display: none; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+        .btn:hover:not(:disabled) { transform: scale(1.01); filter: brightness(0.95); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-primary { background: var(--color-accent); color: white; }
+        .btn-success { background: var(--color-success); color: white; }
+        .btn-danger { background: var(--color-danger); color: white; padding: 8px 16px; width: auto; font-size: 14px; }
+        .btn-warning { background: var(--color-warning); color: white; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--color-accent); color: var(--color-accent); }
+        .btn-outline:hover { background: var(--color-accent); color: white; }
+        .btn-sm { padding: 6px 14px; width: auto; font-size: 13px; border-radius: 6px; }
+        .switch-form { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 14px; }
+        .switch-form a { color: var(--color-accent); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .switch-form a:hover { text-decoration: underline; }
+
+        /* Main Content */
+        .main-content { margin-top: 76px; padding: 24px; max-width: 1000px; margin-left: auto; margin-right: auto; display: none; }
+        .view { display: none; background: var(--bg-card); padding: 32px; border-radius: 16px; box-shadow: var(--shadow-card); animation: fadeIn 0.3s ease; transition: background 0.3s ease, box-shadow 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .view h1 { color: var(--text-primary); margin-bottom: 24px; font-size: 26px; border-bottom: 2px solid var(--border-light); padding-bottom: 12px; }
+        .view p { color: var(--text-secondary); line-height: 1.8; font-size: 15px; margin-bottom: 8px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; }
+        .stat-card.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .stat-card.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card .label { font-size: 13px; opacity: 0.9; margin-bottom: 6px; }
+        .stat-card .value { font-size: 24px; font-weight: bold; }
+
+        /* Bookmarks & Drag */
+        .bookmarks-toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .bookmarks-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .search-box { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+        .search-box input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; background: var(--bg-input); color: var(--text-primary); }
+        .search-box input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(74,111,165,0.12); }
+        .search-box::before { content: '🔍'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+        .kbd-hint { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-muted); background: var(--bg-card-alt); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-light); pointer-events: none; }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .tag-chip { padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border-tag-chip); background: var(--bg-tag-chip); color: var(--text-tag-chip); user-select: none; }
+        .tag-chip:hover { border-color: var(--color-accent); color: var(--color-accent); }
+        .tag-chip.active { background: var(--bg-tag-chip-active); color: var(--text-tag-chip-active); border-color: var(--bg-tag-chip-active); }
+        .tag-chip .count { margin-left: 4px; opacity: 0.7; font-size: 11px; }
+        .bookmarks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        
+        /* 🆕 Drag Styles */
+        .bookmark-card { background: var(--bg-card-alt); border: 1px solid var(--border-light); border-radius: 12px; padding: 16px; display: flex; align-items: flex-start; gap: 12px; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; position: relative; text-decoration: none; color: inherit; flex-direction: column; cursor: grab; touch-action: none; }
+        .bookmark-card:active { cursor: grabbing; }
+        .bookmark-card.dragging { opacity: var(--drag-ghost-opacity); transform: scale(0.98); box-shadow: var(--shadow-card); z-index: 10; }
+        .bookmark-card.drag-over { border: 2px dashed var(--drag-over-border); background: var(--add-card-hover-bg); }
+        .bookmark-card-top { display: flex; align-items: center; gap: 12px; width: 100%; }
+        .bookmark-icon { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--bg-card); padding: 4px; flex-shrink: 0; }
+        .bookmark-info { flex: 1; overflow: hidden; }
+        .bookmark-title { font-weight: 600; font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bookmark-url { font-size: 12px; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bookmark-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+        .bookmark-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--bg-tag); color: var(--text-tag); white-space: nowrap; }
+        
+        /* 🆕 Edit & Delete Buttons */
+        .bookmark-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+        .bookmark-card:hover .bookmark-actions { opacity: 1; }
+        .bm-action-btn { border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; }
+        .bm-edit-btn { background: rgba(74,111,165,0.1); color: var(--color-accent); }
+        .bm-edit-btn:hover { background: var(--color-accent); color: white; }
+        .bm-delete-btn { background: var(--bookmark-delete-bg); color: var(--color-danger); }
+        .bm-delete-btn:hover { background: var(--color-danger); color: white; }
+
+        .add-bookmark-card { border: 2px dashed var(--add-card-border); background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; min-height: 120px; border-radius: 12px; transition: all 0.2s; }
+        .add-bookmark-card:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--add-card-hover-bg); }
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); grid-column: 1 / -1; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* Admin Table */
+        .user-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .user-table th, .user-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--table-border); font-size: 14px; color: var(--text-secondary); }
+        .user-table th { background: var(--table-header-bg); color: var(--text-secondary); font-weight: 600; }
+        .user-table tr:hover { background: var(--table-hover-bg); }
+        .role-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .role-badge.admin { background: var(--role-admin-bg); color: var(--role-admin-text); }
+        .role-badge.user { background: var(--role-user-bg); color: var(--role-user-text); }
+
+        /* Profile */
+        .profile-section { margin-bottom: 28px; padding: 20px; background: var(--profile-section-bg); border-radius: 12px; transition: background 0.3s ease; }
+        .profile-section h3 { margin-bottom: 16px; color: var(--text-primary); font-size: 18px; }
+        .data-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+        .import-options { margin-top: 12px; padding: 12px; background: var(--bg-import-options); border-radius: 8px; display: none; transition: background 0.3s ease; }
+        .import-options label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; margin-bottom: 6px; color: var(--text-secondary); }
+        .import-options .hint { font-size: 12px; color: var(--text-muted); margin-left: 26px; margin-bottom: 8px; }
+        .file-input-wrapper { position: relative; display: inline-block; }
+        .file-input-wrapper input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: var(--bg-modal-overlay); z-index: 10000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .modal { background: var(--bg-card); padding: 28px; border-radius: 16px; max-width: 420px; width: 90%; animation: fadeIn 0.2s ease; transition: background 0.3s ease; }
+        .modal h3 { margin-bottom: 20px; color: var(--text-primary); }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .modal .btn-cancel { background: var(--btn-cancel-bg); color: var(--btn-cancel-text); }
+        .feishu-tip { background: var(--feishu-tip-bg); color: var(--feishu-tip-text); padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-top: 8px; display: none; cursor: pointer; transition: background 0.2s; }
+        .feishu-tip:hover { background: var(--feishu-tip-hover); }
+        .tag-input-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 0 12px; } .nav-brand { display: none; }
+            .nav-menu { gap: 4px; } .nav-menu a, .nav-menu button.nav-btn { padding: 6px 10px; font-size: 13px; }
+            .nav-user-info { display: none; }
+            .main-content { padding: 16px; margin-top: 68px; }
+            .view { padding: 20px; } .stats-grid { grid-template-columns: 1fr; }
+            .data-actions { flex-direction: column; }
+            .bookmarks-header { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: none; }
+            .kbd-hint { display: none; }
+            /* Mobile: always show action buttons since no hover */
+            .bookmark-actions { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 🆕 统一书签弹窗（支持新增 & 编辑） -->
+    <div class="modal-overlay" id="bookmarkModal">
+        <div class="modal">
+            <h3 id="bmModalTitle">➕ 添加常用网站</h3>
+            <form id="addBookmarkForm">
+                <input type="hidden" id="bmEditId">
+                <div class="form-group">
+                    <label>网站名称</label>
+                    <input type="text" id="bmName" required placeholder="例如：我的工作表格">
+                </div>
+                <div class="form-group">
+                    <label>网站链接 (URL)</label>
+                    <input type="url" id="bmUrl" required placeholder="https://..." oninput="checkFeishuLink(this.value)">
+                    <div class="feishu-tip" id="feishuTip" onclick="fillFeishuDefault()">⚡ 检测到飞书链接，点击一键填入默认多维表格</div>
+                </div>
+                <div class="form-group">
+                    <label>标签（可选）</label>
+                    <input type="text" id="bmTags" placeholder="例如：工作,飞书,报表">
+                    <div class="tag-input-hint">多个标签用中文或英文逗号分隔</div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-sm btn-cancel" onclick="closeBookmarkModal()">取消</button>
+                    <button type="submit" class="btn btn-sm btn-success" id="bmSubmitBtn">确认添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <span class="nav-brand">🔧 角色权限工具站</span>
+        <ul class="nav-menu">
+            <li><a href="#" data-view="home" onclick="showView('home')">首页</a></li>
+            <li><a href="#" data-view="bookmarks" onclick="showView('bookmarks')">常用网站</a></li>
+            <li><a href="#" data-view="profile" onclick="showView('profile')">个人中心</a></li>
+            <li id="adminMenu" style="display:none;"><a href="#" data-view="admin" onclick="showView('admin')">后台管理</a></li>
+            <li><span class="nav-user-info" id="navUserInfo"></span></li>
+            <li><a href="#" class="logout-btn" onclick="handleLogout()">退出登录</a></li>
+            <li><button class="theme-toggle nav-btn" id="themeToggle" onclick="toggleTheme()" title="切换深色/浅色模式">🌙</button></li>
+        </ul>
+    </nav>
+
+    <div class="auth-container" id="authContainer">
+        <div class="auth-form">
+            <h2 id="formTitle">用户登录</h2>
+            <form id="authFormElement" novalidate>
+                <div class="form-group"><label for="username">用户名</label><input type="text" id="username" required autocomplete="off" placeholder="请输入用户名"><div class="error-message" id="usernameError"></div></div>
+                <div class="form-group"><label for="password">密码</label><input type="password" id="password" required placeholder="请输入密码"><div class="error-message" id="passwordError"></div></div>
+                <div class="form-group" id="confirmPasswordGroup" style="display:none;"><label for="confirmPassword">确认密码</label><input type="password" id="confirmPassword" placeholder="请再次输入密码"><div class="error-message" id="confirmPasswordError">两次密码不一致</div></div>
+                <div class="form-group" id="roleGroup" style="display:none;"><label for="role">角色选择</label><select id="role"><option value="普通用户">普通用户</option><option value="管理员">管理员</option></select></div>
+                <button type="submit" class="btn btn-primary" id="submitBtn">登 录</button>
+                <div id="registerLink" class="switch-form">还没有账户？<a onclick="switchToRegister()">立即注册</a></div>
+                <div id="loginLink" class="switch-form" style="display:none;">已有账户？<a onclick="switchToLogin()">立即登录</a></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <section class="view" id="home-view">
+            <h1>📊 数据概览</h1>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="label">当前用户</div><div class="value" id="homeUsername">-</div></div>
+                <div class="stat-card green"><div class="label">用户角色</div><div class="value" id="homeRole">-</div></div>
+                <div class="stat-card orange"><div class="label">系统用户总数</div><div class="value" id="homeUserCount">0</div></div>
+            </div>
+            <p>欢迎使用基于角色权限的个人工具站。本系统支持多用户注册、角色区分与前端路由模拟。</p>
+            <p style="margin-top:8px;color:var(--text-muted);font-size:13px;">注册时间：<span id="homeRegTime">-</span></p>
+            <p style="margin-top:4px;color:var(--text-muted);font-size:13px;">💡 快捷键：<code>Ctrl+K</code> 搜索书签 · <code>Esc</code> 关闭弹窗</p>
+        </section>
+
+        <section class="view" id="bookmarks-view">
+            <h1>🌐 我的常用网站</h1>
+            <div class="bookmarks-toolbar">
+                <div class="bookmarks-header">
+                    <div class="search-box">
+                        <input type="text" id="bookmarkSearch" placeholder="搜索名称、链接或标签..." oninput="renderBookmarks()">
+                        <span class="kbd-hint">Ctrl+K</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span style="font-size:14px;color:var(--text-muted);">共 <span id="bookmarkCount" style="color:var(--color-accent);font-weight:bold">0</span> 条</span>
+                        <button class="btn btn-sm btn-success" onclick="openAddBookmarkModal()">➕ 添加新网站</button>
+                    </div>
+                </div>
+                <div class="tag-cloud" id="tagCloud"></div>
+            </div>
+            <div class="bookmarks-grid" id="bookmarksContainer"></div>
+        </section>
+
+        <section class="view" id="profile-view">
+            <h1>👤 个人中心</h1>
+            <div class="profile-section">
+                <h3>基本信息</h3>
+                <p>用户名：<strong id="profileUsername">-</strong></p>
+                <p>角色：<span id="profileRoleBadge" class="role-badge">-</span></p>
+                <p>注册时间：<span id="profileRegTime">-</span></p>
+            </div>
+            <div class="profile-section">
+                <h3>💾 书签数据管理</h3>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">书签数据存储在浏览器本地，换设备或清除缓存会丢失。建议定期备份。</p>
+                <div class="data-actions">
+                    <button class="btn btn-sm btn-primary" onclick="exportBookmarks()">📥 导出书签备份</button>
+                    <div class="file-input-wrapper"><button class="btn btn-sm btn-outline">📤 导入书签数据</button><input type="file" accept=".json" onchange="handleImportFile(this)"></div>
+                </div>
+                <div class="import-options" id="importOptions">
+                    <label><input type="radio" name="importMode" value="merge" checked> 合并模式</label>
+                    <div class="hint">保留现有书签，仅追加文件中不重复的条目（按 URL 去重）</div>
+                    <label><input type="radio" name="importMode" value="overwrite"> 覆盖模式</label>
+                    <div class="hint">⚠️ 完全替换现有书签为文件内容，不可恢复</div>
+                    <div style="margin-top:12px;display:flex;gap:8px;">
+                        <button class="btn btn-sm btn-warning" onclick="confirmImport()">确认导入</button>
+                        <button class="btn btn-sm btn-cancel" onclick="cancelImport()">取消</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="view" id="admin-view">
+            <h1>⚙️ 后台管理</h1>
+            <p style="margin-bottom:16px;">管理系统中的所有注册用户。管理员不可删除自身账户。</p>
+            <table class="user-table"><thead><tr><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTableBody"></tbody></table>
+        </section>
+    </div>
+
+    <script>
+        // ================= 全局状态 =================
+        let currentUser = null;
+        let pendingImportData = null;
+        let activeTagFilter = null;
+        const STORAGE_KEYS = { USERS: 'tool_users', SESSION: 'tool_session', BOOKMARKS_PREFIX: 'tool_bookmarks_', THEME: 'tool_theme' };
+        const FEISHU_ICON = 'https://sf3-cn.feishucdn.com/obj/suite-public-file-cn/_/static/icon/lark_logo.png';
+        const DEFAULT_FEISHU_BITABLE_URL = 'https://your-domain.feishu.cn/base/YOUR_APP_TOKEN';
+
+        // 🆕 拖拽状态
+        let dragSrcIndex = null;
+        let isDragging = false;
+
+        // ================= 主题管理 =================
+        function initTheme() {
+            const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+            applyTheme(saved || 'light');
+        }
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem(STORAGE_KEYS.THEME, theme);
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        initTheme();
+
+        // ================= 🆕 全局快捷键 =================
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+K / Cmd+K 聚焦搜索
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (!currentUser) return;
+                showView('bookmarks');
+                setTimeout(() => document.getElementById('bookmarkSearch')?.focus(), 100);
+            }
+            // Esc 关闭弹窗
+            if (e.key === 'Escape') {
+                closeBookmarkModal();
+            }
+        });
+
+        // ================= 工具函数 =================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        const Storage = {
+            get(key) { try { return JSON.parse(localStorage.getItem(key)) || null; } catch { return null; } },
+            set(key, value) { localStorage.setItem(key, JSON.stringify(value)); },
+            getUsers() { return this.get(STORAGE_KEYS.USERS) || []; },
+            saveUsers(users) { this.set(STORAGE_KEYS.USERS, users); },
+            getBookmarks(username) { return this.get(`${STORAGE_KEYS.BOOKMARKS_PREFIX}${username}`) || []; },
+            saveBookmarks(username, bookmarks) { this.set(`${STORAGE_KEYS.BOOKMARKS_PREFIX}${username}`, bookmarks); }
+        };
+
+        function parseTags(tagStr) {
+            if (!tagStr || !tagStr.trim()) return [];
+            return [...new Set(tagStr.split(/[,，]/).map(t => t.trim()).filter(t => t.length > 0))];
+        }
+
+        // ================= 认证模块 =================
+        function switchToRegister() {
+            document.getElementById('formTitle').textContent = '用户注册';
+            document.getElementById('submitBtn').textContent = '注 册';
+            document.getElementById('submitBtn').className = 'btn btn-success';
+            document.getElementById('confirmPasswordGroup').style.display = 'block';
+            document.getElementById('roleGroup').style.display = 'block';
+            document.getElementById('registerLink').style.display = 'none';
+            document.getElementById('loginLink').style.display = 'block';
+            clearErrors();
+        }
+        function switchToLogin() {
+            document.getElementById('formTitle').textContent = '用户登录';
+            document.getElementById('submitBtn').textContent = '登 录';
+            document.getElementById('submitBtn').className = 'btn btn-primary';
+            document.getElementById('confirmPasswordGroup').style.display = 'none';
+            document.getElementById('roleGroup').style.display = 'none';
+            document.getElementById('registerLink').style.display = 'block';
+            document.getElementById('loginLink').style.display = 'none';
+            clearErrors();
+        }
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('input').forEach(el => el.classList.remove('invalid'));
+        }
+        function showError(inputId, errorId, message) {
+            document.getElementById(inputId).classList.add('invalid');
+            const errEl = document.getElementById(errorId);
+            errEl.textContent = message; errEl.style.display = 'block';
+        }
+
+        document.getElementById('authFormElement').addEventListener('submit', function(e) {
+            e.preventDefault(); clearErrors();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const isRegisterMode = document.getElementById('loginLink').style.display === 'block';
+            if (!username || !password) { showToast('请填写所有必填项', 'error'); return; }
+            const users = Storage.getUsers();
+            const existingUser = users.find(u => u.username === username);
+            if (isRegisterMode) {
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const role = document.getElementById('role').value;
+                if (password !== confirmPassword) { showError('confirmPassword', 'confirmPasswordError', '两次密码不一致'); return; }
+                if (existingUser) { showError('username', 'usernameError', '用户名已存在'); return; }
+                users.push({ username, password: CryptoJS.SHA256(password).toString(), role, regTime: new Date().toLocaleString('zh-CN') });
+                Storage.saveUsers(users);
+                showToast('注册成功！请登录', 'success');
+                switchToLogin();
+                document.getElementById('username').value = username;
+                document.getElementById('password').value = '';
+            } else {
+                if (!existingUser) { showError('username', 'usernameError', '用户不存在'); return; }
+                if (existingUser.password !== CryptoJS.SHA256(password).toString()) { showError('password', 'passwordError', '密码错误'); return; }
+                loginSuccess(existingUser);
+            }
+        });
+
+        function loginSuccess(user) {
+            currentUser = user;
+            Storage.set(STORAGE_KEYS.SESSION, user);
+            initApp();
+            showToast(`欢迎回来，${user.username}！`, 'success');
+        }
+        function handleLogout() {
+            currentUser = null; pendingImportData = null; activeTagFilter = null;
+            localStorage.removeItem(STORAGE_KEYS.SESSION);
+            document.getElementById('navbar').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('authFormElement').reset();
+            switchToLogin();
+            showToast('已安全退出', 'info');
+        }
+
+        // ================= 视图路由 =================
+        function showView(viewName) {
+            if (!currentUser) return;
+            document.querySelectorAll('.nav-menu a[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === viewName));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`${viewName}-view`)?.classList.add('active');
+            if (viewName === 'home') updateHomeStats();
+            if (viewName === 'bookmarks') renderBookmarks();
+            if (viewName === 'profile') updateProfile();
+            if (viewName === 'admin') renderAdminPanel();
+        }
+        function initApp() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('navbar').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('navUserInfo').textContent = `${currentUser.username} (${currentUser.role})`;
+            document.getElementById('adminMenu').style.display = currentUser.role === '管理员' ? 'list-item' : 'none';
+            showView('home');
+        }
+        function updateHomeStats() {
+            document.getElementById('homeUsername').textContent = currentUser.username;
+            document.getElementById('homeRole').textContent = currentUser.role;
+            document.getElementById('homeRegTime').textContent = currentUser.regTime;
+            document.getElementById('homeUserCount').textContent = Storage.getUsers().length;
+        }
+        function updateProfile() {
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('profileRegTime').textContent = currentUser.regTime;
+            const badge = document.getElementById('profileRoleBadge');
+            badge.textContent = currentUser.role;
+            badge.className = `role-badge ${currentUser.role === '管理员' ? 'admin' : 'user'}`;
+            cancelImport();
+        }
+        function renderAdminPanel() {
+            if (currentUser.role !== '管理员') { showView('home'); showToast('无权访问后台管理', 'error'); return; }
+            const users = Storage.getUsers();
+            document.getElementById('userTableBody').innerHTML = users.map(u => `
+                <tr><td>${u.username}</td><td><span class="role-badge ${u.role === '管理员' ? 'admin' : 'user'}">${u.role}</span></td><td>${u.regTime}</td>
+                <td>${u.username !== currentUser.username ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.username}')">删除</button>` : '<span style="color:var(--text-muted);font-size:12px">当前用户</span>'}</td></tr>`).join('');
+        }
+        function deleteUser(username) {
+            if (!confirm(`确定要删除用户 "${username}" 吗？`)) return;
+            Storage.saveUsers(Storage.getUsers().filter(u => u.username !== username));
+            localStorage.removeItem(`${STORAGE_KEYS.BOOKMARKS_PREFIX}${username}`);
+            renderAdminPanel(); showToast(`用户 ${username} 已删除`, 'success');
+        }
+
+        // ================= 🆕 书签 CRUD + 拖拽排序 =================
+        function checkFeishuLink(url) {
+            document.getElementById('feishuTip').style.display = /feishu\.cn|larksuite\.com/i.test(url) ? 'block' : 'none';
+        }
+        function fillFeishuDefault() {
+            document.getElementById('bmUrl').value = DEFAULT_FEISHU_BITABLE_URL;
+            document.getElementById('bmName').value = '飞书多维表格';
+            showToast('已填入飞书默认链接', 'info');
+        }
+        function getFaviconUrl(url) {
+            try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; } catch { return ''; }
+        }
+
+        // 🆕 打开新增弹窗
+        function openAddBookmarkModal() {
+            document.getElementById('addBookmarkForm').reset();
+            document.getElementById('bmEditId').value = '';
+            document.getElementById('bmModalTitle').textContent = '➕ 添加常用网站';
+            document.getElementById('bmSubmitBtn').textContent = '确认添加';
+            document.getElementById('feishuTip').style.display = 'none';
+            document.getElementById('bookmarkModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('bmName').focus(), 100);
+        }
+
+        // 🆕 打开编辑弹窗
+        function openEditBookmarkModal(id) {
+            const bookmarks = Storage.getBookmarks(currentUser.username);
+            const bm = bookmarks.find(b => b.id === id);
+            if (!bm) return;
+            document.getElementById('bmEditId').value = bm.id;
+            document.getElementById('bmName').value = bm.name;
+            document.getElementById('bmUrl').value = bm.url;
+            document.getElementById('bmTags').value = (bm.tags || []).join(', ');
+            document.getElementById('bmModalTitle').textContent = '✏️ 编辑书签';
+            document.getElementById('bmSubmitBtn').textContent = '保存修改';
+            checkFeishuLink(bm.url);
+            document.getElementById('bookmarkModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('bmName').focus(), 100);
+        }
+
+        function closeBookmarkModal() { document.getElementById('bookmarkModal').style.display = 'none'; }
+        document.getElementById('bookmarkModal').addEventListener('click', function(e) { if (e.target === this) closeBookmarkModal(); });
+
+        // 🆕 统一提交（新增 or 编辑）
+        document.getElementById('addBookmarkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('bmEditId').value;
+            const name = document.getElementById('bmName').value.trim();
+            let url = document.getElementById('bmUrl').value.trim();
+            const tagsRaw = document.getElementById('bmTags').value;
+            if (!name || !url) { showToast('请填写完整信息', 'error'); return; }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            const isFeishu = /feishu\.cn|larksuite\.com/i.test(url);
+            const tags = parseTags(tagsRaw);
+            const bookmarks = Storage.getBookmarks(currentUser.username);
+
+            if (editId) {
+                // 编辑模式
+                const idx = bookmarks.findIndex(b => b.id == editId);
+                if (idx === -1) { showToast('书签不存在', 'error'); return; }
+                bookmarks[idx] = { ...bookmarks[idx], name, url, icon: isFeishu ? FEISHU_ICON : getFaviconUrl(url), isFeishu, tags };
+                Storage.saveBookmarks(currentUser.username, bookmarks);
+                showToast('书签已更新', 'success');
+            } else {
+                // 新增模式
+                bookmarks.push({ id: Date.now(), name, url, icon: isFeishu ? FEISHU_ICON : getFaviconUrl(url), isFeishu, tags });
+                Storage.saveBookmarks(currentUser.username, bookmarks);
+                showToast('书签添加成功！', 'success');
+            }
+            closeBookmarkModal();
+            renderBookmarks();
+        });
+
+        function deleteBookmark(id) {
+            if (!confirm('确定删除此书签吗？')) return;
+            Storage.saveBookmarks(currentUser.username, Storage.getBookmarks(currentUser.username).filter(b => b.id !== id));
+            renderBookmarks(); showToast('书签已删除', 'info');
+        }
+
+        function renderTagCloud(bookmarks) {
+            const tagMap = {}; let untaggedCount = 0;
+            bookmarks.forEach(b => {
+                if (!b.tags || b.tags.length === 0) untaggedCount++;
+                else b.tags.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; });
+            });
+            const sortedTags = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
+            const cloud = document.getElementById('tagCloud');
+            let html = `<span class="tag-chip ${activeTagFilter === null ? 'active' : ''}" onclick="setTagFilter(null)">全部<span class="count">${bookmarks.length}</span></span>`;
+            if (untaggedCount > 0) html += `<span class="tag-chip ${activeTagFilter === '' ? 'active' : ''}" onclick="setTagFilter('')">未标签<span class="count">${untaggedCount}</span></span>`;
+            sortedTags.forEach(([tag, count]) => {
+                html += `<span class="tag-chip ${activeTagFilter === tag ? 'active' : ''}" onclick="setTagFilter('${tag.replace(/'/g, "\\'")}')">${tag}<span class="count">${count}</span></span>`;
+            });
+            cloud.innerHTML = html;
+        }
+        function setTagFilter(tag) { activeTagFilter = tag; renderBookmarks(); }
+
+        // 🆕 渲染书签（含拖拽绑定）
+        function renderBookmarks() {
+            const allBookmarks = Storage.getBookmarks(currentUser.username);
+            const searchKeyword = (document.getElementById('bookmarkSearch')?.value || '').trim().toLowerCase();
+            // 搜索/过滤时禁用拖拽排序提示
+            const isFiltered = searchKeyword || activeTagFilter !== null;
+
+            const filtered = allBookmarks.filter(b => {
+                if (activeTagFilter !== null) {
+                    if (activeTagFilter === '') { if (b.tags && b.tags.length > 0) return false; }
+                    else { if (!b.tags || !b.tags.includes(activeTagFilter)) return false; }
+                }
+                if (searchKeyword) {
+                    const nameMatch = b.name.toLowerCase().includes(searchKeyword);
+                    const urlMatch = b.url.toLowerCase().includes(searchKeyword);
+                    const tagMatch = b.tags && b.tags.some(t => t.toLowerCase().includes(searchKeyword));
+                    if (!nameMatch && !urlMatch && !tagMatch) return false;
+                }
+                return true;
+            });
+
+            document.getElementById('bookmarkCount').textContent = filtered.length;
+            renderTagCloud(allBookmarks);
+
+            const fallbackIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌐%3C/text%3E%3C/svg%3E";
+            const container = document.getElementById('bookmarksContainer');
+
+            if (filtered.length === 0) {
+                const isSearching = searchKeyword || activeTagFilter !== null;
+                container.innerHTML = `<div class="empty-state"><div class="icon">${isSearching ? '🔍' : '📭'}</div><div>${isSearching ? '没有找到匹配的书签' : '还没有书签，点击上方按钮添加'}</div></div>
+                    <div class="add-bookmark-card" onclick="openAddBookmarkModal()"><div style="font-size:24px;margin-bottom:8px">➕</div><div>添加新网站</div></div>`;
+                return;
+            }
+
+            let html = filtered.map((b, idx) => {
+                const tagsHtml = (b.tags && b.tags.length > 0) ? `<div class="bookmark-tags">${b.tags.map(t => `<span class="bookmark-tag">${t}</span>`).join('')}</div>` : '';
+                // 🆕 data-index 用于拖拽定位，draggable 仅在未过滤时启用
+                const dragAttrs = isFiltered ? '' : `draggable="true" data-bm-id="${b.id}" data-index="${allBookmarks.indexOf(b)}"`;
+                return `
+                <a href="${b.url}" target="_blank" rel="noopener noreferrer" class="bookmark-card" ${dragAttrs}>
+                    <div class="bookmark-card-top">
+                        <img class="bookmark-icon" src="${b.icon}" alt="" onerror="this.src='${fallbackIcon}'">
+                        <div class="bookmark-info"><div class="bookmark-title">${b.name}</div><div class="bookmark-url">${b.url}</div></div>
+                    </div>
+                    ${tagsHtml}
+                    <div class="bookmark-actions">
+                        <button class="bm-action-btn bm-edit-btn" onclick="event.preventDefault();event.stopPropagation();openEditBookmarkModal(${b.id})" title="编辑">✎</button>
+                        <button class="bm-action-btn bm-delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteBookmark(${b.id})" title="删除">✕</button>
+                    </div>
+                </a>`;
+            }).join('');
+
+            html += `<div class="add-bookmark-card" onclick="openAddBookmarkModal()"><div style="font-size:24px;margin-bottom:8px">➕</div><div>添加新网站</div></div>`;
+            container.innerHTML = html;
+
+            // 🆕 绑定拖拽事件
+            if (!isFiltered) bindDragEvents();
+        }
+
+        // 🆕 拖拽排序核心逻辑（兼容桌面 + 移动端触摸）
+        function bindDragEvents() {
+            const cards = document.querySelectorAll('.bookmark-card[draggable="true"]');
+            const container = document.getElementById('bookmarksContainer');
+
+            cards.forEach(card => {
+                // Desktop Drag
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+
+                // Mobile Touch
+                card.addEventListener('touchstart', handleTouchStart, { passive: false });
+                card.addEventListener('touchmove', handleTouchMove, { passive: false });
+                card.addEventListener('touchend', handleTouchEnd);
+            });
+        }
+
+        function handleDragStart(e) {
+            dragSrcIndex = parseInt(this.dataset.index);
+            isDragging = true;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', dragSrcIndex);
+        }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+        function handleDragEnter(e) { e.preventDefault(); if (this !== event.currentTarget) return; this.classList.add('drag-over'); }
+        function handleDragLeave(e) { this.classList.remove('drag-over'); }
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const targetIndex = parseInt(this.dataset.index);
+            if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) reorderBookmarks(dragSrcIndex, targetIndex);
+        }
+        function handleDragEnd() {
+            isDragging = false; dragSrcIndex = null;
+            document.querySelectorAll('.bookmark-card').forEach(c => c.classList.remove('dragging', 'drag-over'));
+        }
+
+        // 🆕 移动端触摸拖拽
+        let touchStartY = 0, touchCard = null, touchClone = null;
+        function handleTouchStart(e) {
+            // 长按 300ms 才触发拖拽，避免与滚动冲突
+            this._touchTimer = setTimeout(() => {
+                e.preventDefault();
+                touchCard = this;
+                dragSrcIndex = parseInt(this.dataset.index);
+                isDragging = true;
+                this.classList.add('dragging');
+                touchStartY = e.touches[0].clientY;
+                // 创建视觉反馈克隆
+                touchClone = this.cloneNode(true);
+                touchClone.style.position = 'fixed';
+                touchClone.style.left = this.getBoundingClientRect().left + 'px';
+                touchClone.style.top = this.getBoundingClientRect().top + 'px';
+                touchClone.style.width = this.offsetWidth + 'px';
+                touchClone.style.opacity = '0.8';
+                touchClone.style.zIndex = '9999';
+                touchClone.style.pointerEvents = 'none';
+                document.body.appendChild(touchClone);
+                navigator.vibrate?.(50);
+            }, 300);
+        }
+        function handleTouchMove(e) {
+            if (!isDragging || !touchClone) { clearTimeout(this._touchTimer); return; }
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchClone.style.top = (touch.clientY - 40) + 'px';
+            // 高亮目标卡片
+            document.querySelectorAll('.bookmark-card.drag-over').forEach(c => c.classList.remove('drag-over'));
+            const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetCard = elemBelow?.closest('.bookmark-card[draggable="true"]');
+            if (targetCard && targetCard !== touchCard) targetCard.classList.add('drag-over');
+        }
+        function handleTouchEnd(e) {
+            clearTimeout(this._touchTimer);
+            if (!isDragging) return;
+            const touch = e.changedTouches[0];
+            const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetCard = elemBelow?.closest('.bookmark-card[draggable="true"]');
+            if (targetCard && targetCard !== touchCard) {
+                const targetIndex = parseInt(targetCard.dataset.index);
+                reorderBookmarks(dragSrcIndex, targetIndex);
+            }
+            // Cleanup
+            touchClone?.remove(); touchClone = null; touchCard = null;
+            isDragging = false; dragSrcIndex = null;
+            document.querySelectorAll('.bookmark-card').forEach(c => c.classList.remove('dragging', 'drag-over'));
+        }
+
+        function reorderBookmarks(fromIdx, toIdx) {
+            const bookmarks = Storage.getBookmarks(currentUser.username);
+            const [moved] = bookmarks.splice(fromIdx, 1);
+            bookmarks.splice(toIdx, 0, moved);
+            Storage.saveBookmarks(currentUser.username, bookmarks);
+            renderBookmarks();
+            showToast('排序已更新', 'success');
+        }
+
+        // ================= 数据导入导出 =================
+        function exportBookmarks() {
+            const bookmarks = Storage.getBookmarks(currentUser.username);
+            if (!bookmarks.length) { showToast('当前没有书签可导出', 'warning'); return; }
+            const data = { version: '1.0', exportTime: new Date().toISOString(), username: currentUser.username, bookmarkCount: bookmarks.length, bookmarks };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `bookmarks_${currentUser.username}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast(`已导出 ${bookmarks.length} 条书签`, 'success');
+        }
+        function handleImportFile(input) {
+            const file = input.files[0]; if (!file) return; input.value = '';
+            if (!file.name.endsWith('.json')) { showToast('请选择 .json 文件', 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.bookmarks || !Array.isArray(data.bookmarks)) throw new Error('格式无效');
+                    pendingImportData = data.bookmarks;
+                    showToast(`读取成功：${data.bookmarks.length} 条`, 'info');
+                    document.getElementById('importOptions').style.display = 'block';
+                } catch (err) { showToast(`解析失败：${err.message}`, 'error'); }
+            };
+            reader.readAsText(file);
+        }
+        function confirmImport() {
+            if (!pendingImportData?.length) return;
+            const mode = document.querySelector('input[name="importMode"]:checked').value;
+            const current = Storage.getBookmarks(currentUser.username);
+            if (mode === 'overwrite') {
+                if (!confirm(`⚠️ 将删除现有 ${current.length} 条，替换为 ${pendingImportData.length} 条。确定？`)) return;
+                Storage.saveBookmarks(currentUser.username, pendingImportData.map(bm => ({ ...bm, id: Date.now() + Math.random() })));
+                showToast(`已覆盖导入 ${pendingImportData.length} 条`, 'success');
+            } else {
+                const urls = new Set(current.map(b => b.url));
+                const newItems = pendingImportData.filter(bm => !urls.has(bm.url)).map(bm => ({ ...bm, id: Date.now() + Math.random() }));
+                if (!newItems.length) showToast('无新书签可合并', 'warning');
+                else { Storage.saveBookmarks(currentUser.username, [...current, ...newItems]); showToast(`已合并 ${newItems.length} 条`, 'success'); }
+            }
+            cancelImport();
+            if (document.getElementById('bookmarks-view').classList.contains('active')) renderBookmarks();
+        }
+        function cancelImport() { pendingImportData = null; document.getElementById('importOptions').style.display = 'none'; }
+
+        // ================= 🆕 PWA Service Worker 注册 =================
+        if ('serviceWorker' in navigator) {
+            // 注意：单文件模式下 SW 无法真正缓存。
+            // 实际部署时请将 sw.js 作为独立文件放在根目录。
+            // 此处仅为演示注册逻辑，不会报错。
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+
+        // ================= 初始化 =================
+        window.addEventListener('DOMContentLoaded', function() {
+            const session = Storage.get(STORAGE_KEYS.SESSION);
+            if (session?.username) {
+                const validUser = Storage.getUsers().find(u => u.username === session.username);
+                if (validUser) { currentUser = validUser; initApp(); }
+                else localStorage.removeItem(STORAGE_KEYS.SESSION);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "角色权限工具站",
+  "short_name": "书签工具",
+  "description": "支持拖拽排序、标签管理与离线访问的个人书签工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#4a6fa5",
+  "theme_color": "#4a6fa5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://www.google.com/s2/favicons?domain=github.com&sz=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://www.google.com/s2/favicons?domain=github.com&sz=512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
