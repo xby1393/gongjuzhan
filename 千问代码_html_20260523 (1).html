@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>角色权限工具站 - 终极版</title>
     <!-- PWA Manifest (注意：实际部署时需将 manifest 提取为独立 json 文件) -->
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoi5bel5Lia5p2D5Zu65bel5YW3Iiwic2hvcnRfbmFtZSI6IuW3peSImuaKpSIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzRhNmZhNSIsInRoZW1lX2NvbG9yIjoiIzRhNmZhNSIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3d3dy5nb29nbGUuY29tL3MyL2Zhdmljb25zP2RvbWFpbj1sb2NhbGhvc3Qmc3o9MTkyIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
+    <link rel="manifest" href="./manifest.json">
+    <!-- 🆕 iOS PWA 兼容标签（必加） -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="书签工具">
+    <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#4a6fa5">
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
     <style>
@@ -821,12 +826,14 @@
         function cancelImport() { pendingImportData = null; document.getElementById('importOptions').style.display = 'none'; }
 
         // ================= 🆕 PWA Service Worker 注册 =================
-        if ('serviceWorker' in navigator) {
-            // 注意：单文件模式下 SW 无法真正缓存。
-            // 实际部署时请将 sw.js 作为独立文件放在根目录。
-            // 此处仅为演示注册逻辑，不会报错。
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
+        // ================= PWA Service Worker 注册 =================
+        if ('serviceWorker' in navigator) 
+        {
+            window.addEventListener('load', () => 
+            {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('✅ SW 注册成功:', reg.scope))
+                .catch(err => console.error('❌ SW 注册失败:', err));
             });
         }
 
